@@ -7,8 +7,11 @@ export default function BookRidePage() {
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [rideType, setRideType] = useState("economy");
-  const [fare, setFare] = useState<number | null>(null);
 
+  const [isShared, setIsShared] = useState(false);
+  const [passengers, setPassengers] = useState(1);
+
+  const [fare, setFare] = useState<number | null>(null);
   const router = useRouter();
 
   const calculateFare = () => {
@@ -17,16 +20,20 @@ export default function BookRidePage() {
       return;
     }
 
-    const baseFare = rideType === "premium" ? 250 : 120;
+    const baseFare = rideType === "premium" ? 300 : 150;
     setFare(baseFare);
 
-    // Mark ride as active (for tracking)
+    // Mark ride as active
     localStorage.setItem("activeRide", "true");
   };
 
   const proceedToPayment = () => {
     router.push("/payments");
   };
+
+  const finalPassengers = isShared ? passengers : 1;
+  const perPersonFare =
+    fare !== null ? Math.ceil(fare / finalPassengers) : null;
 
   const mapUrl =
     pickup && destination
@@ -37,7 +44,7 @@ export default function BookRidePage() {
 
   return (
     <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-      {/* LEFT: BOOKING FORM */}
+      {/* LEFT PANEL */}
       <div className="bg-white p-6 rounded-xl shadow space-y-4">
         <h1 className="text-2xl font-bold">Book a Ride</h1>
 
@@ -64,6 +71,32 @@ export default function BookRidePage() {
           <option value="premium">Premium</option>
         </select>
 
+        {/* RIDE SHARING */}
+        <div className="border rounded-lg p-4 space-y-3">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isShared}
+              onChange={() => setIsShared(!isShared)}
+            />
+            Enable Ride Sharing
+          </label>
+
+          {isShared && (
+            <input
+              type="number"
+              min={2}
+              max={4}
+              value={passengers}
+              onChange={(e) =>
+                setPassengers(Number(e.target.value))
+              }
+              className="w-full border p-2 rounded-lg"
+              placeholder="Number of riders"
+            />
+          )}
+        </div>
+
         <button
           onClick={calculateFare}
           className="w-full bg-black text-white py-3 rounded-lg hover:opacity-90"
@@ -71,12 +104,19 @@ export default function BookRidePage() {
           Calculate Fare
         </button>
 
-        {/* FARE + PAY BUTTON */}
+        {/* FARE DETAILS */}
         {fare && (
-          <div className="space-y-3">
-            <div className="text-lg font-semibold">
-              Estimated Fare: ₹{fare}
-            </div>
+          <div className="space-y-2">
+            <p className="text-lg font-semibold">
+              Total Fare: ₹{fare}
+            </p>
+
+            {isShared && (
+              <p className="text-sm text-gray-600">
+                Split Fare ({finalPassengers} riders): ₹
+                {perPersonFare} per person
+              </p>
+            )}
 
             <button
               onClick={proceedToPayment}
@@ -88,7 +128,7 @@ export default function BookRidePage() {
         )}
       </div>
 
-      {/* RIGHT: MAP */}
+      {/* MAP */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <iframe
           title="route-map"
