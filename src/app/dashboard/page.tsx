@@ -2,29 +2,38 @@ import Link from "next/link";
 
 export default function DashboardPage() {
   return (
-    <div className="p-6 max-w-md mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-center">Dashboard</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/book-ride"
-          className="block border p-3 rounded text-center hover:bg-gray-100"
+          className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition"
         >
-          🚕 Book a Ride
+          <h2 className="text-xl font-semibold">🚕 Book a Ride</h2>
+          <p className="text-gray-500 mt-2">
+            Choose pickup, destination and ride type
+          </p>
         </Link>
 
         <Link
           href="/ride-history"
-          className="block border p-3 rounded text-center hover:bg-gray-100"
+          className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition"
         >
-          📜 Ride History
+          <h2 className="text-xl font-semibold">📜 Ride History</h2>
+          <p className="text-gray-500 mt-2">
+            View your previous rides
+          </p>
         </Link>
 
         <Link
           href="/profile"
-          className="block border p-3 rounded text-center hover:bg-gray-100"
+          className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition"
         >
-          👤 Profile
+          <h2 className="text-xl font-semibold">👤 Profile</h2>
+          <p className="text-gray-500 mt-2">
+            Manage your account details
+          </p>
         </Link>
       </div>
     </div>
