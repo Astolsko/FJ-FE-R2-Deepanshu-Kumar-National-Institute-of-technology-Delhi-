@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BookRidePage() {
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [rideType, setRideType] = useState("economy");
   const [fare, setFare] = useState<number | null>(null);
+
+  const router = useRouter();
 
   const calculateFare = () => {
     if (!pickup || !destination) {
@@ -16,6 +19,13 @@ export default function BookRidePage() {
 
     const baseFare = rideType === "premium" ? 250 : 120;
     setFare(baseFare);
+
+    // Mark ride as active (for tracking)
+    localStorage.setItem("activeRide", "true");
+  };
+
+  const proceedToPayment = () => {
+    router.push("/payments");
   };
 
   const mapUrl =
@@ -61,14 +71,24 @@ export default function BookRidePage() {
           Calculate Fare
         </button>
 
+        {/* FARE + PAY BUTTON */}
         {fare && (
-          <div className="text-lg font-semibold">
-            Estimated Fare: ₹{fare}
+          <div className="space-y-3">
+            <div className="text-lg font-semibold">
+              Estimated Fare: ₹{fare}
+            </div>
+
+            <button
+              onClick={proceedToPayment}
+              className="w-full bg-green-600 text-white py-3 rounded-lg hover:opacity-90"
+            >
+              Proceed to Payment
+            </button>
           </div>
         )}
       </div>
 
-      {/* RIGHT: MAP (VISIBLE WHILE BOOKING) */}
+      {/* RIGHT: MAP */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <iframe
           title="route-map"

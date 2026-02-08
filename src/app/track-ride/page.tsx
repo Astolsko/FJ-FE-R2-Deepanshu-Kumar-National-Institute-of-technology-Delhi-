@@ -1,33 +1,59 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function TrackRidePage() {
-  // Fixed user location
-  const userLocation = "Connaught Place, Delhi";
+  // ---- ALL HOOKS FIRST (NO CONDITIONS ABOVE) ----
+  const [hasActiveRide, setHasActiveRide] = useState(false);
+  const [driverIndex, setDriverIndex] = useState(0);
 
-  // Simulated driver locations (looping path)
+  const userLocation = "Connaught Place, Delhi";
   const driverPath = [
     "Karol Bagh, Delhi",
     "Rajiv Chowk, Delhi",
     "Paharganj, Delhi",
   ];
 
-  const [driverIndex, setDriverIndex] = useState(0);
-
-  // Looping real-time movement (text only)
+  // Check active ride
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDriverIndex((prev) => (prev + 1) % driverPath.length);
-    }, 3000); // every 3 seconds
-
-    return () => clearInterval(interval);
+    const activeRide = localStorage.getItem("activeRide");
+    setHasActiveRide(activeRide === "true");
   }, []);
 
-  // FIXED map route (prevents iframe refresh)
+  // Simulate driver movement ONLY if ride is active
+  useEffect(() => {
+    if (!hasActiveRide) return;
+
+    const interval = setInterval(() => {
+      setDriverIndex((prev) => (prev + 1) % driverPath.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [hasActiveRide]);
+
   const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(
     driverPath[0]
   )}+to+${encodeURIComponent(userLocation)}&output=embed`;
+
+  // ---- UI RENDERING ONLY BELOW ----
+  if (!hasActiveRide) {
+    return (
+      <div className="max-w-xl mx-auto text-center space-y-6 mt-20">
+        <h1 className="text-2xl font-bold">No Active Ride</h1>
+        <p className="text-gray-500">
+          You haven’t booked any ride yet.
+        </p>
+
+        <Link
+          href="/book-ride"
+          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:opacity-90"
+        >
+          Book a Ride
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -43,14 +69,11 @@ export default function TrackRidePage() {
         <p className="text-sm text-gray-500">
           Driver location updates in real time
         </p>
-        <p className="text-xs text-gray-400">
-          Map remains fixed while live location updates are simulated
-        </p>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <iframe
-          title="live-tracking-map"
+          title="tracking-map"
           src={mapUrl}
           className="w-full h-[400px]"
           loading="lazy"
