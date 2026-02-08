@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "../components/ToastProvider";
 
 export default function BookRidePage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
@@ -18,7 +20,10 @@ export default function BookRidePage() {
 
   const calculateFare = () => {
     if (!pickup || !destination) {
-      alert("Please enter pickup and destination");
+      showToast(
+        "Please enter pickup and destination",
+        "error"
+      );
       return;
     }
 
@@ -49,13 +54,20 @@ export default function BookRidePage() {
         passengers: finalPassengers,
       })
     );
+
+    showToast("Fare calculated successfully 💰", "success");
   };
 
   const payAndConfirmRide = () => {
     localStorage.setItem("activeRide", "true");
     localStorage.setItem("paymentDone", "true");
 
-    router.push("/track-ride");
+    showToast("Ride booked successfully 🚗", "success");
+
+    // Small delay so user sees the toast
+    setTimeout(() => {
+      router.push("/track-ride");
+    }, 800);
   };
 
   const mapUrl =

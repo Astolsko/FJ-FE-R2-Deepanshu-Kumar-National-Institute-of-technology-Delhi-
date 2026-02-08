@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "../components/ToastProvider";
 
 type RideDetails = {
   pickup: string;
@@ -11,19 +12,26 @@ type RideDetails = {
   passengers: number;
 };
 
+type RideStage =
+  | "assigned"
+  | "approaching"
+  | "in_progress"
+  | "near_destination";
+
 export default function TrackRidePage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [ride, setRide] = useState<RideDetails | null>(null);
-  const [driverIndex, setDriverIndex] = useState(0);
+  const [stage, setStage] = useState<RideStage>("assigned");
+  const [progress, setProgress] = useState(0);
 
-  // Simulated driver movement path
+  // Logical driver path
   const driverPath = [
-    "Connaught Place, Delhi",
-    "Rajiv Chowk, Delhi",
-    "Karol Bagh, Delhi",
-    "Patel Nagar, Delhi",
-    "Connaught Place, Delhi",
+    "Driver assigned",
+    "Approaching pickup location",
+    "Ride in progress",
+    "Near destination",
   ];
 
   // Load active ride
@@ -38,22 +46,42 @@ export default function TrackRidePage() {
     }
 
     setRide(JSON.parse(rideDetails));
+    showToast("Driver assigned 🚕", "info");
   }, []);
 
-  // Driver movement simulation
+  // Smooth ride progression
   useEffect(() => {
     if (!ride) return;
 
     const interval = setInterval(() => {
-      setDriverIndex((prev) => (prev + 1) % driverPath.length);
+      setProgress((prev) => {
+        const next = prev + 1;
+
+        // Stage transitions
+        if (next === 2) {
+          setStage("approaching");
+          showToast("Driver is arriving at pickup 📍", "info");
+        }
+
+        if (next === 5) {
+          setStage("in_progress");
+        }
+
+        if (next === 8) {
+          setStage("near_destination");
+          showToast("You’re near your destination 🏁", "info");
+        }
+
+        return next;
+      });
     }, 3000);
 
     return () => clearInterval(interval);
   }, [ride]);
 
-  // End ride → go to feedback
   const endRide = () => {
-    router.push("/feedback");
+    showToast("Ride completed 🏁", "success");
+    setTimeout(() => router.push("/feedback"), 900);
   };
 
   // 🚫 No active ride
@@ -67,10 +95,6 @@ export default function TrackRidePage() {
       </div>
     );
   }
-
-  const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(
-    driverPath[driverIndex]
-  )}&output=embed`;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
@@ -93,28 +117,32 @@ export default function TrackRidePage() {
           <strong>Passengers:</strong> {ride.passengers}
         </p>
         <p className="text-green-600 font-medium">
-          Driver Location: {driverPath[driverIndex]}
+          Status: {driverPath[Math.min(progress, driverPath.length - 1)]}
         </p>
       </div>
 
-      {/* Map */}
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <iframe
-          title="driver-map"
-          src={mapUrl}
-          className="w-full h-[420px]"
-          loading="lazy"
-        />
+      {/* Progress Bar */}
+      <div className="bg-white p-4 rounded-2xl shadow">
+        <p className="text-sm text-gray-500 mb-2">
+          Trip Progress
+        </p>
+        <div className="w-full bg-gray-200 rounded-full h-3">
+          <div
+            className="bg-black h-3 rounded-full transition-all"
+            style={{ width: `${Math.min(progress * 10, 100)}%` }}
+          />
+        </div>
       </div>
 
       {/* End Ride */}
-      <button
-        onClick={endRide}
-        className="w-full bg-red-600 text-white py-3 rounded-xl text-lg hover:opacity-90 transition"
-      >
-        End Ride & Give Feedback
-      </button>
+      {stage === "near_destination" && (
+        <button
+          onClick={endRide}
+          className="w-full bg-red-600 text-white py-3 rounded-xl text-lg hover:opacity-90 transition"
+        >
+          End Ride & Give Feedback
+        </button>
+      )}
     </div>
   );
 }
-

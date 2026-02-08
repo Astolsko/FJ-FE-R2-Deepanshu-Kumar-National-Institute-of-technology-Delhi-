@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ToastProvider } from "./components/ToastProvider";
 
 export default function RootLayout({
   children,
@@ -8,7 +9,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50">
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "../components/ToastProvider";
 
 export default function FeedbackPage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const submitFeedback = () => {
+    if (submitting) return;
+
+    setSubmitting(true);
+
     const rideDetails = JSON.parse(
       localStorage.getItem("activeRideDetails") || "{}"
     );
@@ -44,7 +51,12 @@ export default function FeedbackPage() {
     localStorage.removeItem("activeRideDetails");
     localStorage.removeItem("ridePayment");
 
-    router.push("/dashboard");
+    showToast("Thanks for your feedback ⭐", "success");
+
+    // Let toast appear before redirect
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 900);
   };
 
   return (
@@ -60,8 +72,10 @@ export default function FeedbackPage() {
             <button
               key={num}
               onClick={() => setRating(num)}
-              className={`text-3xl ${
-                num <= rating ? "text-yellow-400" : "text-gray-300"
+              className={`text-3xl transition ${
+                num <= rating
+                  ? "text-yellow-400"
+                  : "text-gray-300"
               }`}
             >
               ★
@@ -80,9 +94,14 @@ export default function FeedbackPage() {
 
         <button
           onClick={submitFeedback}
-          className="w-full bg-black text-white py-3 rounded-lg hover:opacity-90"
+          disabled={submitting}
+          className={`w-full py-3 rounded-lg transition text-white ${
+            submitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-black hover:opacity-90"
+          }`}
         >
-          Submit Feedback
+          {submitting ? "Submitting..." : "Submit Feedback"}
         </button>
       </div>
     </div>
