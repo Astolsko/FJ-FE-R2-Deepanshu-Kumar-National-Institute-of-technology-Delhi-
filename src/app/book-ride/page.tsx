@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ToastProvider";
 
@@ -15,8 +15,18 @@ export default function BookRidePage() {
 
   const [isShared, setIsShared] = useState(false);
   const [passengers, setPassengers] = useState(2);
-
   const [fare, setFare] = useState<number | null>(null);
+
+  /* Prevent booking if a ride is already active */
+  useEffect(() => {
+    const activeRide = localStorage.getItem("activeRide");
+    const paymentDone = localStorage.getItem("paymentDone");
+
+    if (activeRide && paymentDone) {
+      showToast("You already have an active ride 🚕", "info");
+      router.push("/track-ride");
+    }
+  }, []);
 
   const calculateFare = () => {
     if (!pickup || !destination) {
@@ -27,22 +37,18 @@ export default function BookRidePage() {
       return;
     }
 
-    // Base pricing
     const baseFare = rideType === "premium" ? 300 : 150;
     const totalFare = baseFare;
-
     const finalPassengers = isShared ? passengers : 1;
 
     setFare(totalFare);
 
-    // Store ride details
     localStorage.setItem(
       "activeRideDetails",
       JSON.stringify({
         pickup,
         destination,
         rideType,
-        shared: isShared,
         passengers: finalPassengers,
       })
     );
@@ -64,7 +70,6 @@ export default function BookRidePage() {
 
     showToast("Ride booked successfully 🚗", "success");
 
-    // Small delay so user sees the toast
     setTimeout(() => {
       router.push("/track-ride");
     }, 800);
@@ -131,7 +136,6 @@ export default function BookRidePage() {
                 setPassengers(Number(e.target.value))
               }
               className="w-full border p-2 rounded-lg"
-              placeholder="Number of riders"
             />
           )}
         </div>
@@ -197,3 +201,4 @@ export default function BookRidePage() {
     </div>
   );
 }
+

@@ -1,11 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 
 type ToastType = "success" | "info" | "error";
 
 type Toast = {
-  id: number;
+  id: string;
   message: string;
   type: ToastType;
 };
@@ -18,12 +18,16 @@ const ToastContext = createContext<ToastContextType | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const counterRef = useRef(0);
 
   const showToast = (
     message: string,
     type: ToastType = "info"
   ) => {
-    const id = Date.now();
+    counterRef.current += 1;
+
+    const id = `${Date.now()}-${counterRef.current}`;
+
     setToasts((prev) => [...prev, { id, message, type }]);
 
     setTimeout(() => {
@@ -35,7 +39,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      {/* Toast UI */}
       <div className="fixed top-5 right-5 space-y-3 z-50">
         {toasts.map((toast) => (
           <div
