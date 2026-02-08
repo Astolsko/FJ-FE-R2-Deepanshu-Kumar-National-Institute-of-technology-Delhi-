@@ -13,14 +13,24 @@ export default function BookRidePage() {
       alert("Please enter pickup and destination");
       return;
     }
-    setFare(rideType === "premium" ? 200 : 100);
+
+    const baseFare = rideType === "premium" ? 250 : 120;
+    setFare(baseFare);
   };
 
-  return (
-    <div className="max-w-lg bg-white p-8 rounded-xl shadow">
-      <h1 className="text-2xl font-bold mb-6">Book a Ride</h1>
+  const mapUrl =
+    pickup && destination
+      ? `https://www.google.com/maps?q=${encodeURIComponent(
+          pickup
+        )}+to+${encodeURIComponent(destination)}&output=embed`
+      : `https://www.google.com/maps?q=Delhi&output=embed`;
 
-      <div className="space-y-4">
+  return (
+    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+      {/* LEFT: BOOKING FORM */}
+      <div className="bg-white p-6 rounded-xl shadow space-y-4">
+        <h1 className="text-2xl font-bold">Book a Ride</h1>
+
         <input
           className="w-full border p-3 rounded-lg"
           placeholder="Pickup location"
@@ -52,12 +62,23 @@ export default function BookRidePage() {
         </button>
 
         {fare && (
-          <div className="text-center text-lg font-semibold">
+          <div className="text-lg font-semibold">
             Estimated Fare: ₹{fare}
           </div>
         )}
       </div>
+
+      {/* RIGHT: MAP (VISIBLE WHILE BOOKING) */}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <iframe
+          title="route-map"
+          src={mapUrl}
+          className="w-full h-[420px]"
+          loading="lazy"
+        />
+      </div>
     </div>
   );
 }
+
 
