@@ -134,23 +134,16 @@ The application is designed to be **responsive**, **accessible**, and **easy to 
 
 ---
 
-## 📂 Project Structure (Simplified)
+## 📂 Project Structure
 
-src/
-├── app/
-│ ├── dashboard/
-│ ├── book-ride/
-│ ├── payments/
-│ ├── ride-history/
-│ ├── profile/
-│ ├── chat/
-│ ├── components/
-│ └── layout.tsx
-├── lib/
-│ └── mockStripe.ts
-├── types/
-│ └── payment.ts
-└── globals.css
+The project follows a modular structure using Next.js App Router.
+
+- `src/app` – Application routes and pages
+- `src/app/components` – Reusable UI components
+- `src/lib` – Mock services (e.g., payment simulation)
+- `src/types` – TypeScript type definitions
+- `globals.css` – Global styles and theme configuration
+
 
 ---
 
