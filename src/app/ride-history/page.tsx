@@ -1,38 +1,47 @@
-"use client";
-
 export default function RideHistoryPage() {
   const rides = [
     {
-      id: 1,
       date: "8 Feb 2026",
-      from: "NIT Delhi",
-      to: "Connaught Place",
-      fare: 120,
+      route: "NIT Delhi → Connaught Place",
       driver: "Rohit",
+      fare: 120,
     },
     {
-      id: 2,
       date: "6 Feb 2026",
-      from: "Hostel",
-      to: "Airport",
-      fare: 350,
+      route: "Hostel → Airport",
       driver: "Amit",
+      fare: 350,
+    },
+    {
+      date: "2 Feb 2026",
+      route: "Campus → Karol Bagh",
+      driver: "Suresh",
+      fare: 180,
     },
   ];
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Ride History</h1>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold">Ride History</h1>
 
-      {rides.map((ride) => (
+      {rides.map((ride, index) => (
         <div
-          key={ride.id}
-          className="border p-4 rounded mb-3 space-y-1"
+          key={index}
+          className="bg-white p-5 rounded-xl shadow flex justify-between items-center"
         >
-          <p><b>Date:</b> {ride.date}</p>
-          <p><b>Route:</b> {ride.from} → {ride.to}</p>
-          <p><b>Driver:</b> {ride.driver}</p>
-          <p><b>Fare:</b> ₹{ride.fare}</p>
+          <div>
+            <p className="font-semibold">{ride.route}</p>
+            <p className="text-sm text-gray-500">
+              Date: {ride.date}
+            </p>
+            <p className="text-sm text-gray-500">
+              Driver: {ride.driver}
+            </p>
+          </div>
+
+          <div className="text-lg font-bold">
+            ₹{ride.fare}
+          </div>
         </div>
       ))}
     </div>
