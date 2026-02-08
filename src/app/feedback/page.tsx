@@ -44,7 +44,7 @@ export default function FeedbackPage() {
     localStorage.removeItem("activeRideDetails");
     localStorage.removeItem("ridePayment");
 
-    router.push("/ride-history");
+    router.push("/dashboard");
   };
 
   return (

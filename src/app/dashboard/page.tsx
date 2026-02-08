@@ -3,45 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type RideHistoryItem = {
-  rating: number;
-  comment: string;
-};
-
 export default function DashboardPage() {
   const [hasActiveRide, setHasActiveRide] = useState(false);
-  const [totalRides, setTotalRides] = useState(0);
-  const [avgRating, setAvgRating] = useState(0);
-  const [feedbackCount, setFeedbackCount] = useState(0);
 
   useEffect(() => {
-    // Active ride check
     const activeRide = localStorage.getItem("activeRide");
     const paymentDone = localStorage.getItem("paymentDone");
     setHasActiveRide(!!(activeRide && paymentDone));
-
-    // Stats from ride history
-    const history: RideHistoryItem[] = JSON.parse(
-      localStorage.getItem("rideHistory") || "[]"
-    );
-
-    setTotalRides(history.length);
-
-    if (history.length > 0) {
-      const totalRating = history.reduce(
-        (sum, ride) => sum + (ride.rating || 0),
-        0
-      );
-
-      setAvgRating(
-        Number((totalRating / history.length).toFixed(1))
-      );
-
-      setFeedbackCount(
-        history.filter((r) => r.comment && r.comment.trim() !== "")
-          .length
-      );
-    }
   }, []);
 
   return (
@@ -52,27 +20,8 @@ export default function DashboardPage() {
           Dashboard
         </h1>
         <p className="text-gray-500 text-lg">
-          Overview of your rides and activity
+          Quick actions for your rides
         </p>
-      </div>
-
-      {/* STATS */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <StatCard
-          title="Total Rides"
-          value={totalRides}
-          icon="🚕"
-        />
-        <StatCard
-          title="Average Rating"
-          value={totalRides === 0 ? "—" : `${avgRating} ⭐`}
-          icon="⭐"
-        />
-        <StatCard
-          title="Feedback Given"
-          value={feedbackCount}
-          icon="💬"
-        />
       </div>
 
       {/* Primary Action */}
@@ -82,12 +31,12 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-semibold">
               {hasActiveRide
                 ? "Your ride is in progress"
-                : "Ready for your next ride?"}
+                : "Ready to book a ride?"}
             </h2>
             <p className="text-gray-300 mt-1">
               {hasActiveRide
-                ? "Track your current ride in real time."
-                : "Book, pay, and start your journey."}
+                ? "Track your current ride."
+                : "Book a ride and start your journey."}
             </p>
           </div>
 
@@ -108,6 +57,7 @@ export default function DashboardPage() {
           desc="Choose pickup, destination, and ride type"
           icon="🚗"
         />
+
         <NavCard
           href="/track-ride"
           title="Track Ride"
@@ -115,16 +65,18 @@ export default function DashboardPage() {
           icon="📍"
           highlight
         />
+
         <NavCard
           href="/ride-history"
           title="Ride History"
-          desc="View your completed rides and feedback"
+          desc="View completed rides"
           icon="📜"
         />
+
         <NavCard
           href="/profile"
           title="Profile"
-          desc="View and update your profile"
+          desc="View and edit your profile"
           icon="👤"
           full
         />
@@ -133,29 +85,7 @@ export default function DashboardPage() {
   );
 }
 
-/* ---------- Components ---------- */
-
-function StatCard({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: string | number;
-  icon: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl shadow p-6 flex items-center gap-4">
-      <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl">
-        {icon}
-      </div>
-      <div>
-        <p className="text-gray-500 text-sm">{title}</p>
-        <p className="text-2xl font-semibold">{value}</p>
-      </div>
-    </div>
-  );
-}
+/* ---------- Card Component ---------- */
 
 function NavCard({
   href,
