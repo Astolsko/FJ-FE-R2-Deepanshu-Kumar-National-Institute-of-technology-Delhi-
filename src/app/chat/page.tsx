@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Message = {
   id: number;
@@ -15,42 +16,47 @@ export default function ChatPage() {
   const router = useRouter();
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastMsgCount = useRef(0);
+  const initialized = useRef(false);
 
+  /* ==============================
+     PURE INITIAL STATE (IMPORTANT)
+  ============================== */
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [chatClosed, setChatClosed] = useState(false);
 
   /* ==============================
-     INIT CHAT (NO DEP ARRAY)
+     INIT SYSTEM MESSAGE (SAFE)
   ============================== */
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     if (!localStorage.getItem("activeRide")) {
       router.replace("/dashboard");
       return;
     }
 
-    if (messages.length === 0) {
-      setMessages([
-        {
-          id: Date.now(),
-          sender: "System",
-          text: "You are now connected with your driver",
-          time: new Date().toLocaleTimeString(),
-        },
-      ]);
-    }
-  });
+    setMessages([
+      {
+        id: Date.now(),
+        sender: "System",
+        text: "You are now connected with your driver",
+        time: new Date().toLocaleTimeString(),
+      },
+    ]);
+  }, [router]);
 
   /* ==============================
-     AUTO SCROLL (REF BASED)
+     AUTO SCROLL
   ============================== */
   useEffect(() => {
     if (messages.length !== lastMsgCount.current) {
       lastMsgCount.current = messages.length;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  });
+  }, [messages]);
 
   /* ==============================
      AUTO CLOSE CHAT
@@ -75,7 +81,7 @@ export default function ChatPage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  });
+  }, [chatClosed]);
 
   /* ==============================
      SEND MESSAGE
@@ -106,9 +112,11 @@ export default function ChatPage() {
       };
 
       setMessages((prev) =>
-        prev.map((m) =>
-          m.id === userMsg.id ? { ...m, seen: true } : m
-        ).concat(driverMsg)
+        prev
+          .map((m) =>
+            m.id === userMsg.id ? { ...m, seen: true } : m
+          )
+          .concat(driverMsg)
       );
     }, 1500);
   };
@@ -117,9 +125,12 @@ export default function ChatPage() {
     <div className="max-w-3xl mx-auto p-6 space-y-4">
       {/* HEADER */}
       <div className="bg-white p-4 rounded-xl shadow flex items-center gap-4">
-        <img
+        <Image
           src="https://i.pravatar.cc/100?img=12"
-          className="w-10 h-10 rounded-full"
+          alt="Driver avatar"
+          width={40}
+          height={40}
+          className="rounded-full"
         />
         <div>
           <p className="font-semibold">Rohit • Driver</p>
@@ -128,8 +139,6 @@ export default function ChatPage() {
       </div>
 
       {/* CHAT */}
-     
-
       <div className="bg-white h-[420px] p-4 rounded-xl shadow overflow-y-auto space-y-3">
         {messages.map((m) =>
           m.sender === "System" ? (
@@ -149,9 +158,12 @@ export default function ChatPage() {
               } items-end gap-2`}
             >
               {m.sender === "Driver" && (
-                <img
+                <Image
                   src="https://i.pravatar.cc/100?img=12"
-                  className="w-7 h-7 rounded-full"
+                  alt="Driver avatar"
+                  width={28}
+                  height={28}
+                  className="rounded-full"
                 />
               )}
 

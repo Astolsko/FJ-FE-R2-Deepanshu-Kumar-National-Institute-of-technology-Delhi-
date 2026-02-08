@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* ==============================
+   CSS VARIABLES
+============================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,6 +15,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* ==============================
+   DARK MODE SUPPORT
+============================== */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,11 +25,42 @@
   }
 }
 
+/* ==============================
+   GLOBAL BASE STYLES
+============================== */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden; /* 🔑 prevents horizontal scroll on mobile */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+  font-size: 14px; /* 📱 mobile default */
 }
+
+/* ==============================
+   RESPONSIVE TYPOGRAPHY
+============================== */
+@media (min-width: 640px) {
+  body {
+    font-size: 16px; /* 💻 tablet & desktop */
+  }
+}
+
+/* ==============================
+   MOBILE SAFE AREA (iOS NOTCH)
+============================== */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ==============================
+   ANIMATIONS
+============================== */
 @keyframes slide-in {
   from {
     opacity: 0;
