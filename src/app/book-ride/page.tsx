@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "../components/ToastProvider";
+import { chargePayment } from "@/app/lib/mockStripe";
 
 export default function BookRidePage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const hasRedirected = useRef(false);
 
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
@@ -16,30 +18,36 @@ export default function BookRidePage() {
   const [isShared, setIsShared] = useState(false);
   const [passengers, setPassengers] = useState(2);
   const [fare, setFare] = useState<number | null>(null);
+  const [paying, setPaying] = useState(false);
 
-  /* Prevent booking if a ride is already active */
+  /* --------------------------------
+     PREVENT MULTIPLE ACTIVE RIDES
+  --------------------------------- */
   useEffect(() => {
+    if (hasRedirected.current) return;
+
     const activeRide = localStorage.getItem("activeRide");
     const paymentDone = localStorage.getItem("paymentDone");
 
     if (activeRide && paymentDone) {
+      hasRedirected.current = true;
       showToast("You already have an active ride 🚕", "info");
       router.push("/track-ride");
     }
-  }, []);
+  }, [router, showToast]);
 
+  /* --------------------------------
+     FARE CALCULATION
+  --------------------------------- */
   const calculateFare = () => {
     if (!pickup || !destination) {
-      showToast(
-        "Please enter pickup and destination",
-        "error"
-      );
+      showToast("Please enter pickup and destination", "error");
       return;
     }
 
     const baseFare = rideType === "premium" ? 300 : 150;
-    const totalFare = baseFare;
     const finalPassengers = isShared ? passengers : 1;
+    const totalFare = baseFare;
 
     setFare(totalFare);
 
@@ -64,15 +72,34 @@ export default function BookRidePage() {
     showToast("Fare calculated successfully 💰", "success");
   };
 
-  const payAndConfirmRide = () => {
-    localStorage.setItem("activeRide", "true");
-    localStorage.setItem("paymentDone", "true");
+  /* --------------------------------
+     MOCK STRIPE PAYMENT
+  --------------------------------- */
+  const payAndConfirmRide = async () => {
+    if (!fare) return;
 
-    showToast("Ride booked successfully 🚗", "success");
+    setPaying(true);
 
-    setTimeout(() => {
-      router.push("/track-ride");
-    }, 800);
+    try {
+      const result = await chargePayment(fare);
+
+      if (result.success) {
+        localStorage.setItem("activeRide", "true");
+        localStorage.setItem("paymentDone", "true");
+
+        showToast("Payment successful & ride booked 🚗", "success");
+
+        setTimeout(() => {
+          router.push("/track-ride");
+        }, 800);
+      } else {
+        showToast("Payment failed ❌", "error");
+      }
+    } catch {
+      showToast("Payment error ❌", "error");
+    } finally {
+      setPaying(false);
+    }
   };
 
   const mapUrl =
@@ -115,7 +142,7 @@ export default function BookRidePage() {
           <option value="premium">Premium</option>
         </select>
 
-        {/* Ride Sharing */}
+        {/* RIDE SHARING */}
         <div className="border rounded-lg p-4 space-y-3">
           <label className="flex items-center gap-2">
             <input
@@ -170,20 +197,14 @@ export default function BookRidePage() {
               )}
             </p>
 
-            <div className="border rounded-lg p-4 text-sm">
-              <p className="font-semibold mb-1">
-                Test Card Details
-              </p>
-              <p>4242 4242 4242 4242</p>
-              <p>Any future expiry</p>
-              <p>Any 3-digit CVC</p>
-            </div>
-
             <button
               onClick={payAndConfirmRide}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:opacity-90"
+              disabled={paying}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:opacity-90 disabled:opacity-60"
             >
-              Pay & Confirm Ride
+              {paying
+                ? "Processing Payment..."
+                : "Pay & Confirm Ride"}
             </button>
           </div>
         )}
@@ -201,4 +222,3 @@ export default function BookRidePage() {
     </div>
   );
 }
-

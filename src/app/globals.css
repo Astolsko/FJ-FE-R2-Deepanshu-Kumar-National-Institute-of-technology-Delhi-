@@ -8,20 +8,21 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ==============================
+   MANUAL DARK MODE (TOGGLE)
+============================== */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #f9fafb; /* bright white for readability */
 }
 
 /* ==============================
-   DARK MODE SUPPORT
+   SYSTEM DARK MODE (FALLBACK)
 ============================== */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #f9fafb;
   }
 }
 
@@ -31,7 +32,7 @@
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden; /* 🔑 prevents horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 
 body {
@@ -39,7 +40,70 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
-  font-size: 14px; /* 📱 mobile default */
+  font-size: 14px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* ==============================
+   🔥 HARD DARK MODE TEXT FIX
+   (NO COMPONENT CHANGES)
+============================== */
+
+/* Force all text readable */
+.dark,
+.dark body,
+.dark p,
+.dark span,
+.dark label,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark li,
+.dark a,
+.dark button {
+  color: var(--foreground) !important;
+}
+
+/* Inputs & selects */
+.dark input,
+.dark textarea,
+.dark select {
+  color: var(--foreground) !important;
+  background-color: transparent !important;
+  border-color: #374151 !important; /* gray-700 */
+}
+
+/* Placeholders */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important; /* gray-400 */
+}
+
+/* Muted / secondary text */
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-gray-300,
+.dark .text-gray-600 {
+  color: #d1d5db !important; /* gray-300 */
+}
+
+/* Buttons */
+.dark button {
+  background-color: #111827; /* gray-900 */
+  color: #f9fafb;
+}
+
+/* Cards / containers */
+.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+/* Borders */
+.dark .border {
+  border-color: #374151 !important;
 }
 
 /* ==============================
@@ -47,12 +111,12 @@ body {
 ============================== */
 @media (min-width: 640px) {
   body {
-    font-size: 16px; /* 💻 tablet & desktop */
+    font-size: 16px;
   }
 }
 
 /* ==============================
-   MOBILE SAFE AREA (iOS NOTCH)
+   MOBILE SAFE AREA
 ============================== */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
@@ -75,3 +139,4 @@ body {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
+

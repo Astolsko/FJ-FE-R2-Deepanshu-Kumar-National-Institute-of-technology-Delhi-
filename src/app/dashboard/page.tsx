@@ -9,7 +9,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const activeRide = localStorage.getItem("activeRide");
     const paymentDone = localStorage.getItem("paymentDone");
-    setHasActiveRide(!!(activeRide && paymentDone));
+    setHasActiveRide(!!activeRide);
   }, []);
 
   return (
@@ -35,7 +35,7 @@ export default function DashboardPage() {
             </h2>
             <p className="text-gray-300 mt-1">
               {hasActiveRide
-                ? "Track your current ride."
+                ? "Track your current ride or complete payment."
                 : "Book a ride and start your journey."}
             </p>
           </div>
@@ -71,6 +71,14 @@ export default function DashboardPage() {
           title="Ride History"
           desc="View completed rides"
           icon="📜"
+        />
+
+        {/* ✅ PAYMENTS CARD (NEW) */}
+        <NavCard
+          href="/payments"
+          title="Payments"
+          desc="Manage payment methods and complete ride payments"
+          icon="💳"
         />
 
         <NavCard
