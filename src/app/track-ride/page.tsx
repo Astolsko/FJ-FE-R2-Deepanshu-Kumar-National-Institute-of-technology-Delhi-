@@ -7,15 +7,9 @@ import { useToast } from "../components/ToastProvider";
 type RideDetails = {
   pickup: string;
   destination: string;
-  rideType: string;
-  passengers: number;
 };
 
-type Stage =
-  | "assigned"
-  | "approaching"
-  | "in_progress"
-  | "near_destination";
+type Stage = "assigned" | "approaching" | "in_progress" | "near_destination";
 
 export default function TrackRidePage() {
   const router = useRouter();
@@ -23,20 +17,7 @@ export default function TrackRidePage() {
 
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [stage, setStage] = useState<Stage>("assigned");
-
-  const stageIndex = {
-    assigned: 0,
-    approaching: 1,
-    in_progress: 2,
-    near_destination: 3,
-  };
-
-  const driverLocations = [
-    "Connaught Place, Delhi",
-    "Rajiv Chowk, Delhi",
-    "Karol Bagh, Delhi",
-    "Patel Nagar, Delhi",
-  ];
+  const [eta, setEta] = useState(8); // minutes
 
   // Load ride
   useEffect(() => {
@@ -50,37 +31,48 @@ export default function TrackRidePage() {
     showToast("Driver assigned 🚕", "info");
   }, []);
 
-  // Stage progression (EVENT BASED)
+  // ETA countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setEta((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Ride stages
   useEffect(() => {
     if (!ride) return;
 
     const timeline = [
       () => {
         setStage("approaching");
-        showToast("Driver arriving at pickup 📍", "info");
+        setEta(5);
+        showToast("Driver arriving 📍", "info");
       },
       () => {
         setStage("in_progress");
+        setEta(3);
       },
       () => {
         setStage("near_destination");
+        setEta(1);
         showToast("Near destination 🏁", "info");
       },
     ];
 
     let step = 0;
-
     const interval = setInterval(() => {
       if (step < timeline.length) {
         timeline[step]();
         step++;
       }
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [ride]);
 
   const endRide = () => {
+    localStorage.setItem("chatClosed", "true");
     showToast("Ride completed 🏁", "success");
     setTimeout(() => router.push("/feedback"), 900);
   };
@@ -88,46 +80,55 @@ export default function TrackRidePage() {
   if (!ride) {
     return (
       <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow text-center">
-        <h1 className="text-xl font-bold">Track Ride</h1>
-        <p className="text-gray-600 mt-2">
-          No active ride found.
-        </p>
+        <p>No active ride</p>
       </div>
     );
   }
 
   const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(
-    driverLocations[stageIndex[stage]]
-  )}&output=embed`;
+    ride.pickup
+  )}+to+${encodeURIComponent(ride.destination)}&output=embed`;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
-      <h1 className="text-3xl font-semibold">
-        Ride in Progress 🚕
-      </h1>
+      <h1 className="text-3xl font-semibold">Ride in Progress 🚕</h1>
 
-      <div className="bg-white p-6 rounded-2xl shadow">
-        <p><strong>Pickup:</strong> {ride.pickup}</p>
-        <p><strong>Destination:</strong> {ride.destination}</p>
-        <p><strong>Status:</strong> {stage.replace("_", " ")}</p>
-      </div>
-
-      {/* MAP (RESTORED) */}
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <iframe
-          title="driver-map"
-          src={mapUrl}
-          className="w-full h-[420px]"
-          loading="lazy"
+      {/* DRIVER CARD */}
+      <div className="bg-white p-5 rounded-2xl shadow flex items-center gap-4">
+        <img
+          src="https://i.pravatar.cc/100?img=12"
+          className="w-16 h-16 rounded-full"
         />
+        <div>
+          <p className="font-semibold">Rohit Sharma ⭐ 4.8</p>
+          <p className="text-sm text-gray-500">
+            White Swift • DL 01 AB 2345
+          </p>
+          <p className="text-green-600 text-sm">
+            ETA: {eta} min
+          </p>
+        </div>
       </div>
+
+      {/* MAP */}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <iframe src={mapUrl} className="w-full h-[420px]" />
+      </div>
+
+      {/* CHAT */}
+      <button
+        onClick={() => router.push("/chat")}
+        className="w-full bg-blue-600 text-white py-3 rounded-xl"
+      >
+        Chat with Driver 💬
+      </button>
 
       {stage === "near_destination" && (
         <button
           onClick={endRide}
-          className="w-full bg-red-600 text-white py-3 rounded-xl text-lg hover:opacity-90"
+          className="w-full bg-red-600 text-white py-3 rounded-xl"
         >
-          End Ride & Give Feedback
+          End Ride
         </button>
       )}
     </div>
