@@ -1,84 +1,121 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+type RideDetails = {
+  pickup: string;
+  destination: string;
+  rideType: string;
+  shared: boolean;
+  passengers: number;
+};
 
 export default function TrackRidePage() {
-  // ---- ALL HOOKS FIRST (NO CONDITIONS ABOVE) ----
-  const [hasActiveRide, setHasActiveRide] = useState(false);
+  const router = useRouter();
+
+  const [ride, setRide] = useState<RideDetails | null>(null);
   const [driverIndex, setDriverIndex] = useState(0);
 
-  const userLocation = "Connaught Place, Delhi";
+  // Fake driver movement path (looping)
   const driverPath = [
-    "Karol Bagh, Delhi",
+    "Connaught Place, Delhi",
     "Rajiv Chowk, Delhi",
-    "Paharganj, Delhi",
+    "Karol Bagh, Delhi",
+    "Patel Nagar, Delhi",
+    "Connaught Place, Delhi",
   ];
 
-  // Check active ride
+  // Load ride details
   useEffect(() => {
     const activeRide = localStorage.getItem("activeRide");
-    setHasActiveRide(activeRide === "true");
+    const rideDetails = localStorage.getItem("activeRideDetails");
+
+    if (!activeRide || !rideDetails) {
+      setRide(null);
+      return;
+    }
+
+    setRide(JSON.parse(rideDetails));
   }, []);
 
-  // Simulate driver movement ONLY if ride is active
+  // Driver movement (runs only when ride exists)
   useEffect(() => {
-    if (!hasActiveRide) return;
+    if (!ride) return;
 
     const interval = setInterval(() => {
       setDriverIndex((prev) => (prev + 1) % driverPath.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [hasActiveRide]);
+  }, [ride]);
 
-  const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(
-    driverPath[0]
-  )}+to+${encodeURIComponent(userLocation)}&output=embed`;
+  const endRide = () => {
+    alert("Ride completed!");
 
-  // ---- UI RENDERING ONLY BELOW ----
-  if (!hasActiveRide) {
+    // Clear all ride-related data
+    localStorage.removeItem("activeRide");
+    localStorage.removeItem("paymentDone");
+    localStorage.removeItem("ridePayment");
+    localStorage.removeItem("activeRideDetails");
+
+    router.push("/dashboard");
+  };
+
+  // No active ride
+  if (!ride) {
     return (
-      <div className="max-w-xl mx-auto text-center space-y-6 mt-20">
-        <h1 className="text-2xl font-bold">No Active Ride</h1>
-        <p className="text-gray-500">
+      <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+        <h1 className="text-xl font-bold">Track Ride</h1>
+        <p className="text-gray-600 mt-2">
           You haven’t booked any ride yet.
         </p>
-
-        <Link
-          href="/book-ride"
-          className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:opacity-90"
-        >
-          Book a Ride
-        </Link>
       </div>
     );
   }
 
+  const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+    driverPath[driverIndex]
+  )}&output=embed`;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4">
       <h1 className="text-2xl font-bold">Real-Time Ride Tracking</h1>
 
       <div className="bg-white p-4 rounded-xl shadow space-y-2">
         <p>
-          <b>User Location:</b> {userLocation}
+          <strong>Pickup:</strong> {ride.pickup}
         </p>
         <p>
-          <b>Driver Location:</b> {driverPath[driverIndex]}
+          <strong>Destination:</strong> {ride.destination}
         </p>
-        <p className="text-sm text-gray-500">
-          Driver location updates in real time
+        <p>
+          <strong>Ride Type:</strong> {ride.rideType}
+        </p>
+        <p>
+          <strong>Passengers:</strong> {ride.passengers}
+        </p>
+        <p>
+          <strong>Driver Location:</strong>{" "}
+          {driverPath[driverIndex]}
         </p>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <iframe
-          title="tracking-map"
+          title="driver-map"
           src={mapUrl}
           className="w-full h-[400px]"
           loading="lazy"
         />
       </div>
+
+      <button
+        onClick={endRide}
+        className="w-full bg-red-600 text-white py-3 rounded-lg hover:opacity-90"
+      >
+        End Ride
+      </button>
     </div>
   );
 }

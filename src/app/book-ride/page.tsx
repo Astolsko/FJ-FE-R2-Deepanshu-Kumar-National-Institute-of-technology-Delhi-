@@ -4,15 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function BookRidePage() {
+  const router = useRouter();
+
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
-  const [rideType, setRideType] = useState("economy");
+  const [rideType, setRideType] = useState<"economy" | "premium">("economy");
 
   const [isShared, setIsShared] = useState(false);
-  const [passengers, setPassengers] = useState(1);
+  const [passengers, setPassengers] = useState(2);
 
   const [fare, setFare] = useState<number | null>(null);
-  const router = useRouter();
 
   const calculateFare = () => {
     if (!pickup || !destination) {
@@ -20,20 +21,45 @@ export default function BookRidePage() {
       return;
     }
 
+    // Base pricing
     const baseFare = rideType === "premium" ? 300 : 150;
-    setFare(baseFare);
+    const totalFare = baseFare;
 
-    // Mark ride as active
+    // Sharing logic
+    const finalPassengers = isShared ? passengers : 1;
+    const perPersonFare = Math.ceil(totalFare / finalPassengers);
+
+    setFare(totalFare);
+
+    // Store payment info
+    localStorage.setItem(
+      "ridePayment",
+      JSON.stringify({
+        totalFare,
+        perPersonFare,
+        passengers: finalPassengers,
+      })
+    );
+
+    // Store ride details for tracking
+    localStorage.setItem(
+      "activeRideDetails",
+      JSON.stringify({
+        pickup,
+        destination,
+        rideType,
+        shared: isShared,
+        passengers: finalPassengers,
+      })
+    );
+
+    // Mark ride active
     localStorage.setItem("activeRide", "true");
   };
 
   const proceedToPayment = () => {
     router.push("/payments");
   };
-
-  const finalPassengers = isShared ? passengers : 1;
-  const perPersonFare =
-    fare !== null ? Math.ceil(fare / finalPassengers) : null;
 
   const mapUrl =
     pickup && destination
@@ -65,13 +91,15 @@ export default function BookRidePage() {
         <select
           className="w-full border p-3 rounded-lg"
           value={rideType}
-          onChange={(e) => setRideType(e.target.value)}
+          onChange={(e) =>
+            setRideType(e.target.value as "economy" | "premium")
+          }
         >
           <option value="economy">Economy</option>
           <option value="premium">Premium</option>
         </select>
 
-        {/* RIDE SHARING */}
+        {/* Ride Sharing */}
         <div className="border rounded-lg p-4 space-y-3">
           <label className="flex items-center gap-2">
             <input
@@ -86,7 +114,7 @@ export default function BookRidePage() {
             <input
               type="number"
               min={2}
-              max={4}
+              max={5}
               value={passengers}
               onChange={(e) =>
                 setPassengers(Number(e.target.value))
@@ -104,7 +132,7 @@ export default function BookRidePage() {
           Calculate Fare
         </button>
 
-        {/* FARE DETAILS */}
+        {/* Fare Details */}
         {fare && (
           <div className="space-y-2">
             <p className="text-lg font-semibold">
@@ -113,8 +141,8 @@ export default function BookRidePage() {
 
             {isShared && (
               <p className="text-sm text-gray-600">
-                Split Fare ({finalPassengers} riders): ₹
-                {perPersonFare} per person
+                Split Fare ({passengers} riders): ₹
+                {Math.ceil(fare / passengers)} per person
               </p>
             )}
 
@@ -128,7 +156,7 @@ export default function BookRidePage() {
         )}
       </div>
 
-      {/* MAP */}
+      {/* MAP PANEL */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <iframe
           title="route-map"
@@ -140,5 +168,3 @@ export default function BookRidePage() {
     </div>
   );
 }
-
-

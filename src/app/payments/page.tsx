@@ -1,103 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(
+  "pk_test_51NxxxxxxREPLACE_WITH_YOUR_TEST_KEY"
+);
 
 export default function PaymentsPage() {
-  const [cards, setCards] = useState<string[]>([
-    "**** **** **** 4242",
-  ]);
-  const [cardNumber, setCardNumber] = useState("");
+  const [payment, setPayment] = useState<any>(null);
 
-  const addCard = () => {
-    if (cardNumber.length < 4) {
-      alert("Enter a valid card number");
-      return;
+  useEffect(() => {
+    const stored = localStorage.getItem("ridePayment");
+    if (stored) {
+      setPayment(JSON.parse(stored));
     }
+  }, []);
 
-    const masked =
-      "**** **** **** " + cardNumber.slice(-4);
-    setCards([...cards, masked]);
-    setCardNumber("");
+  const payNow = async () => {
+    // Simulate successful Stripe payment
+    alert(
+      "Stripe Test Payment Successful!\nCard: 4242 4242 4242 4242"
+    );
+
+    localStorage.setItem("paymentDone", "true");
+    window.location.href = "/track-ride";
   };
 
-  const removeCard = (index: number) => {
-    setCards(cards.filter((_, i) => i !== index));
-  };
-
-  const payNow = () => {
-    alert("Payment successful using Stripe test sandbox (simulated)");
-
-    // Mark ride as completed
-    localStorage.removeItem("activeRide");
-  };
-
+  if (!payment) {
+    return <p className="text-center">No payment details found</p>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold">Payment Methods</h1>
+    <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow space-y-4">
+      <h1 className="text-2xl font-bold">Stripe Payment</h1>
 
-      {/* SAVED CARDS */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-4">
-        <h2 className="text-xl font-semibold">
-          Saved Payment Methods
-        </h2>
+      <p>Total Fare: ₹{payment.totalFare}</p>
+      <p>Passengers: {payment.passengers}</p>
+      <p className="font-semibold">
+        Per Person Fare: ₹{payment.perPersonFare}
+      </p>
 
-        {cards.length === 0 && (
-          <p className="text-gray-500">
-            No saved cards
-          </p>
-        )}
-
-        {cards.map((card, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center border p-3 rounded-lg"
-          >
-            <span>{card}</span>
-            <button
-              onClick={() => removeCard(index)}
-              className="text-red-500 text-sm"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
+      <div className="border p-4 rounded-lg space-y-2">
+        <p className="font-semibold">Test Card Details</p>
+        <p>Card Number: 4242 4242 4242 4242</p>
+        <p>Expiry: Any future date</p>
+        <p>CVC: Any 3 digits</p>
       </div>
 
-      {/* ADD CARD */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-4">
-        <h2 className="text-xl font-semibold">
-          Add New Card
-        </h2>
-
-        <input
-          className="w-full border p-3 rounded-lg"
-          placeholder="Card Number (Stripe test: 4242 4242 4242 4242)"
-          value={cardNumber}
-          onChange={(e) => setCardNumber(e.target.value)}
-        />
-
-        <button
-          onClick={addCard}
-          className="bg-black text-white px-6 py-2 rounded-lg hover:opacity-90"
-        >
-          Add Card
-        </button>
-      </div>
-
-      {/* PAY NOW */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <button
-          onClick={payNow}
-          className="w-full bg-green-600 text-white py-3 rounded-lg hover:opacity-90"
-        >
-          Pay ₹250 (Test Payment)
-        </button>
-
-        <p className="text-xs text-gray-500 mt-2 text-center">
-          Payments are simulated using Stripe’s test sandbox
-        </p>
-      </div>
+      <button
+        onClick={payNow}
+        className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:opacity-90"
+      >
+        Pay with Stripe
+      </button>
     </div>
   );
 }
