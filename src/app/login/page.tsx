@@ -1,47 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    if (!username || !password) {
-      alert("Please enter username and password");
-      return;
-    }
-
-    // fake login
-    localStorage.setItem("isLoggedIn", "true");
+    // fake login success
     router.push("/dashboard");
   };
 
   return (
     <div className="h-screen flex items-center justify-center">
-      <div className="w-80 p-6 border rounded-lg space-y-4">
-        <h1 className="text-xl font-bold text-center">Login</h1>
+      <div className="bg-white p-6 rounded-xl shadow-md w-80 space-y-4">
+        <h1 className="text-2xl font-bold text-center">Login</h1>
 
         <input
-          className="w-full border p-2 rounded"
+          type="text"
           placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          className="w-full border p-2 rounded"
         />
 
         <input
-          className="w-full border p-2 rounded"
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border p-2 rounded"
         />
 
         <button
-          className="w-full bg-black text-white py-2 rounded"
           onClick={handleLogin}
+          className="w-full bg-black text-white py-2 rounded"
         >
           Login
         </button>
@@ -49,3 +37,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -8,7 +8,8 @@ export default function BookRidePage() {
 
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
-  const [rideType, setRideType] = useState<"economy" | "premium">("economy");
+  const [rideType, setRideType] =
+    useState<"economy" | "premium">("economy");
 
   const [isShared, setIsShared] = useState(false);
   const [passengers, setPassengers] = useState(2);
@@ -25,23 +26,11 @@ export default function BookRidePage() {
     const baseFare = rideType === "premium" ? 300 : 150;
     const totalFare = baseFare;
 
-    // Sharing logic
     const finalPassengers = isShared ? passengers : 1;
-    const perPersonFare = Math.ceil(totalFare / finalPassengers);
 
     setFare(totalFare);
 
-    // Store payment info
-    localStorage.setItem(
-      "ridePayment",
-      JSON.stringify({
-        totalFare,
-        perPersonFare,
-        passengers: finalPassengers,
-      })
-    );
-
-    // Store ride details for tracking
+    // Store ride details
     localStorage.setItem(
       "activeRideDetails",
       JSON.stringify({
@@ -53,12 +42,20 @@ export default function BookRidePage() {
       })
     );
 
-    // Mark ride active
-    localStorage.setItem("activeRide", "true");
+    localStorage.setItem(
+      "ridePayment",
+      JSON.stringify({
+        totalFare,
+        passengers: finalPassengers,
+      })
+    );
   };
 
-  const proceedToPayment = () => {
-    router.push("/payments");
+  const payAndConfirmRide = () => {
+    localStorage.setItem("activeRide", "true");
+    localStorage.setItem("paymentDone", "true");
+
+    router.push("/track-ride");
   };
 
   const mapUrl =
@@ -69,10 +66,12 @@ export default function BookRidePage() {
       : `https://www.google.com/maps?q=Delhi&output=embed`;
 
   return (
-    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 p-6">
       {/* LEFT PANEL */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-4">
-        <h1 className="text-2xl font-bold">Book a Ride</h1>
+      <div className="bg-white p-6 rounded-2xl shadow space-y-4">
+        <h1 className="text-2xl font-semibold">
+          Book a Ride 🚗
+        </h1>
 
         <input
           className="w-full border p-3 rounded-lg"
@@ -132,32 +131,50 @@ export default function BookRidePage() {
           Calculate Fare
         </button>
 
-        {/* Fare Details */}
+        {/* PAYMENT SECTION */}
         {fare && (
-          <div className="space-y-2">
-            <p className="text-lg font-semibold">
-              Total Fare: ₹{fare}
+          <div className="mt-6 space-y-4 border-t pt-4">
+            <h2 className="text-xl font-semibold">
+              Payment Details 💳
+            </h2>
+
+            <p>
+              <strong>Total Fare:</strong> ₹{fare}
             </p>
 
-            {isShared && (
-              <p className="text-sm text-gray-600">
-                Split Fare ({passengers} riders): ₹
-                {Math.ceil(fare / passengers)} per person
+            <p>
+              <strong>Passengers:</strong>{" "}
+              {isShared ? passengers : 1}
+            </p>
+
+            <p>
+              <strong>Per Person:</strong> ₹
+              {Math.ceil(
+                fare / (isShared ? passengers : 1)
+              )}
+            </p>
+
+            <div className="border rounded-lg p-4 text-sm">
+              <p className="font-semibold mb-1">
+                Test Card Details
               </p>
-            )}
+              <p>4242 4242 4242 4242</p>
+              <p>Any future expiry</p>
+              <p>Any 3-digit CVC</p>
+            </div>
 
             <button
-              onClick={proceedToPayment}
-              className="w-full bg-green-600 text-white py-3 rounded-lg hover:opacity-90"
+              onClick={payAndConfirmRide}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:opacity-90"
             >
-              Proceed to Payment
+              Pay & Confirm Ride
             </button>
           </div>
         )}
       </div>
 
       {/* MAP PANEL */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
         <iframe
           title="route-map"
           src={mapUrl}

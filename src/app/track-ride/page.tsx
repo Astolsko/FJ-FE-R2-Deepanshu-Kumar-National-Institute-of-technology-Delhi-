@@ -17,7 +17,7 @@ export default function TrackRidePage() {
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [driverIndex, setDriverIndex] = useState(0);
 
-  // Fake driver movement path (looping)
+  // Simulated driver movement path
   const driverPath = [
     "Connaught Place, Delhi",
     "Rajiv Chowk, Delhi",
@@ -26,12 +26,13 @@ export default function TrackRidePage() {
     "Connaught Place, Delhi",
   ];
 
-  // Load ride details
+  // Load active ride
   useEffect(() => {
     const activeRide = localStorage.getItem("activeRide");
+    const paymentDone = localStorage.getItem("paymentDone");
     const rideDetails = localStorage.getItem("activeRideDetails");
 
-    if (!activeRide || !rideDetails) {
+    if (!activeRide || !paymentDone || !rideDetails) {
       setRide(null);
       return;
     }
@@ -39,7 +40,7 @@ export default function TrackRidePage() {
     setRide(JSON.parse(rideDetails));
   }, []);
 
-  // Driver movement (runs only when ride exists)
+  // Driver movement simulation
   useEffect(() => {
     if (!ride) return;
 
@@ -50,25 +51,18 @@ export default function TrackRidePage() {
     return () => clearInterval(interval);
   }, [ride]);
 
+  // End ride → go to feedback
   const endRide = () => {
-    alert("Ride completed!");
-
-    // Clear all ride-related data
-    localStorage.removeItem("activeRide");
-    localStorage.removeItem("paymentDone");
-    localStorage.removeItem("ridePayment");
-    localStorage.removeItem("activeRideDetails");
-
-    router.push("/dashboard");
+    router.push("/feedback");
   };
 
-  // No active ride
+  // 🚫 No active ride
   if (!ride) {
     return (
-      <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+      <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow text-center">
         <h1 className="text-xl font-bold">Track Ride</h1>
         <p className="text-gray-600 mt-2">
-          You haven’t booked any ride yet.
+          You don’t have any active ride right now.
         </p>
       </div>
     );
@@ -79,10 +73,13 @@ export default function TrackRidePage() {
   )}&output=embed`;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">Real-Time Ride Tracking</h1>
+    <div className="max-w-4xl mx-auto space-y-6 p-6">
+      <h1 className="text-3xl font-semibold">
+        Ride in Progress 🚕
+      </h1>
 
-      <div className="bg-white p-4 rounded-xl shadow space-y-2">
+      {/* Ride Details */}
+      <div className="bg-white p-6 rounded-2xl shadow space-y-2">
         <p>
           <strong>Pickup:</strong> {ride.pickup}
         </p>
@@ -95,26 +92,27 @@ export default function TrackRidePage() {
         <p>
           <strong>Passengers:</strong> {ride.passengers}
         </p>
-        <p>
-          <strong>Driver Location:</strong>{" "}
-          {driverPath[driverIndex]}
+        <p className="text-green-600 font-medium">
+          Driver Location: {driverPath[driverIndex]}
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Map */}
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
         <iframe
           title="driver-map"
           src={mapUrl}
-          className="w-full h-[400px]"
+          className="w-full h-[420px]"
           loading="lazy"
         />
       </div>
 
+      {/* End Ride */}
       <button
         onClick={endRide}
-        className="w-full bg-red-600 text-white py-3 rounded-lg hover:opacity-90"
+        className="w-full bg-red-600 text-white py-3 rounded-xl text-lg hover:opacity-90 transition"
       >
-        End Ride
+        End Ride & Give Feedback
       </button>
     </div>
   );
